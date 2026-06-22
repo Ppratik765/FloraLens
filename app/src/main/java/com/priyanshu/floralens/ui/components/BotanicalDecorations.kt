@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Eco
+import androidx.compose.material.icons.filled.LocalFlorist
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,7 +29,7 @@ fun BotanicalBackgroundDecorations() {
         Icon(
             imageVector = Icons.Filled.Eco,
             contentDescription = null,
-            tint = PastelPink.copy(alpha = 0.5f),
+            tint = PastelPink.copy(alpha = 0.15f),
             modifier = Modifier
                 .size(180.dp)
                 .offset(x = (-40).dp, y = (-40).dp)
@@ -36,16 +37,52 @@ fun BotanicalBackgroundDecorations() {
                 .align(Alignment.TopStart)
         )
 
+        // Top Right Placeholder Flower
+        Icon(
+            imageVector = Icons.Filled.LocalFlorist,
+            contentDescription = null,
+            tint = PastelPink.copy(alpha = 0.12f),
+            modifier = Modifier
+                .size(150.dp)
+                .offset(x = 30.dp, y = (-30).dp)
+                .rotate(30f)
+                .align(Alignment.TopEnd)
+        )
+
+        // Bottom Left Placeholder Flower
+        Icon(
+            imageVector = Icons.Filled.LocalFlorist,
+            contentDescription = null,
+            tint = PastelYellow.copy(alpha = 0.12f),
+            modifier = Modifier
+                .size(160.dp)
+                .offset(x = (-40).dp, y = 60.dp)
+                .rotate(-15f)
+                .align(Alignment.BottomStart)
+        )
+
         // Bottom Right Placeholder Leaf
         Icon(
             imageVector = Icons.Filled.Eco,
             contentDescription = null,
-            tint = PastelYellow.copy(alpha = 0.5f),
+            tint = PastelYellow.copy(alpha = 0.15f),
             modifier = Modifier
                 .size(220.dp)
                 .offset(x = 60.dp, y = 60.dp)
                 .rotate(-45f)
                 .align(Alignment.BottomEnd)
+        )
+
+        // Small Accent Flower Top-Left
+        Icon(
+            imageVector = Icons.Filled.LocalFlorist,
+            contentDescription = null,
+            tint = BotanicalGreen.copy(alpha = 0.1f),
+            modifier = Modifier
+                .size(70.dp)
+                .offset(x = 120.dp, y = 80.dp)
+                .rotate(45f)
+                .align(Alignment.TopStart)
         )
 
         // Organic Canvas Vine Drawing
@@ -59,7 +96,7 @@ fun BotanicalBackgroundDecorations() {
             }
             drawPath(
                 path = path1,
-                color = LeafGreen.copy(alpha = 0.05f),
+                color = LeafGreen.copy(alpha = 0.15f),
                 style = Stroke(width = 12.dp.toPx())
             )
             
@@ -72,7 +109,7 @@ fun BotanicalBackgroundDecorations() {
             }
             drawPath(
                 path = path2,
-                color = OliveGreen.copy(alpha = 0.05f),
+                color = OliveGreen.copy(alpha = 0.15f),
                 style = Stroke(width = 8.dp.toPx())
             )
         }

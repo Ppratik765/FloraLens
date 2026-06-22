@@ -8,22 +8,36 @@ import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocalFlorist
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -33,12 +47,7 @@ import com.priyanshu.floralens.classifier.TFLiteImageClassifier
 import com.priyanshu.floralens.ui.screens.HistoryScreen
 import com.priyanshu.floralens.ui.screens.ScanScreen
 import com.priyanshu.floralens.ui.screens.WelcomeScreen
-import com.priyanshu.floralens.ui.theme.BotanicalGreen
-import com.priyanshu.floralens.ui.theme.FloraLensTheme
-import com.priyanshu.floralens.ui.theme.LeafGreen
-import com.priyanshu.floralens.ui.theme.PastelGreenCard
-import com.priyanshu.floralens.ui.theme.PremiumWhite
-import com.priyanshu.floralens.ui.theme.TextDark
+import com.priyanshu.floralens.ui.theme.*
 import com.priyanshu.floralens.viewmodel.MainViewModel
 
 class MainActivity : ComponentActivity() {
@@ -83,13 +92,10 @@ fun FloraLensApp(viewModel: MainViewModel) {
         NavHost(
             navController = navController,
             startDestination = "welcome",
-            // We don't apply innerPadding to the NavHost itself so ScanScreen can be edge-to-edge
-            // The individual screens that need padding will handle it, or we apply it dynamically.
             modifier = Modifier.fillMaxSize()
         ) {
             composable("welcome") {
-                // Apply padding only to non-fullscreen screens
-                Modifier.padding(innerPadding).let {
+                Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
                     WelcomeScreen()
                 }
             }
@@ -97,7 +103,7 @@ fun FloraLensApp(viewModel: MainViewModel) {
                 ScanScreen(viewModel = viewModel)
             }
             composable("history") {
-                Modifier.padding(innerPadding).let {
+                Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
                     HistoryScreen(viewModel = viewModel)
                 }
             }
@@ -107,60 +113,247 @@ fun FloraLensApp(viewModel: MainViewModel) {
 
 @Composable
 fun FloraLensBottomBar(navController: NavHostController, currentRoute: String?) {
-    NavigationBar(
-        containerColor = PremiumWhite,
-        contentColor = LeafGreen
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(PremiumWhite)
+            .padding(horizontal = 24.dp, vertical = 20.dp),
+        contentAlignment = Alignment.Center
     ) {
-        NavigationBarItem(
-            icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
-            label = { Text("Home", style = MaterialTheme.typography.labelSmall) },
-            selected = currentRoute == "welcome",
-            onClick = {
-                navController.navigate("welcome") {
-                    popUpTo(navController.graph.startDestinationId) { saveState = true }
-                    launchSingleTop = true
-                    restoreState = true
+        Box(
+            modifier = Modifier
+                .widthIn(max = 360.dp)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            // 1. Organic Canvas Vine Branches wrapping the border
+            Canvas(
+                modifier = Modifier
+                    .matchParentSize()
+                    .zIndex(0f)
+            ) {
+                // Drawing vine lines winding around the edges
+                val pathLeft = Path().apply {
+                    moveTo(10.dp.toPx(), size.height - 10.dp.toPx())
+                    quadraticTo(
+                        -15.dp.toPx(), size.height * 0.5f,
+                        15.dp.toPx(), 10.dp.toPx()
+                    )
                 }
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = LeafGreen,
-                unselectedIconColor = TextDark,
-                indicatorColor = PastelGreenCard
-            )
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Filled.CameraAlt, contentDescription = "Scan") },
-            label = { Text("Scan", style = MaterialTheme.typography.labelSmall) },
-            selected = currentRoute == "scan",
-            onClick = {
-                navController.navigate("scan") {
-                    popUpTo(navController.graph.startDestinationId) { saveState = true }
-                    launchSingleTop = true
-                    restoreState = true
+                drawPath(
+                    path = pathLeft,
+                    color = YellowGreen,
+                    style = Stroke(width = 3.dp.toPx())
+                )
+
+                val pathRight = Path().apply {
+                    moveTo(size.width - 10.dp.toPx(), 10.dp.toPx())
+                    quadraticTo(
+                        size.width + 15.dp.toPx(), size.height * 0.5f,
+                        size.width - 15.dp.toPx(), size.height - 10.dp.toPx()
+                    )
                 }
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = LeafGreen,
-                unselectedIconColor = TextDark,
-                indicatorColor = PastelGreenCard
+                drawPath(
+                    path = pathRight,
+                    color = YellowGreen,
+                    style = Stroke(width = 3.dp.toPx())
+                )
+            }
+
+            // 2. Leaf and Flower Icons peeking out (more in amount and more pronounced)
+            // Left vine leaves
+            Icon(
+                imageVector = Icons.Filled.Eco,
+                contentDescription = null,
+                tint = YellowGreen,
+                modifier = Modifier
+                    .size(28.dp)
+                    .offset(x = (-12).dp, y = (-12).dp)
+                    .rotate(-45f)
+                    .align(Alignment.TopStart)
+                    .zIndex(2f)
             )
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Filled.History, contentDescription = "History") },
-            label = { Text("History", style = MaterialTheme.typography.labelSmall) },
-            selected = currentRoute == "history",
-            onClick = {
-                navController.navigate("history") {
-                    popUpTo(navController.graph.startDestinationId) { saveState = true }
-                    launchSingleTop = true
-                    restoreState = true
+            Icon(
+                imageVector = Icons.Filled.Eco,
+                contentDescription = null,
+                tint = LightGreen,
+                modifier = Modifier
+                    .size(22.dp)
+                    .offset(x = (-16).dp, y = 24.dp)
+                    .rotate(-105f)
+                    .align(Alignment.CenterStart)
+                    .zIndex(2f)
+            )
+            Icon(
+                imageVector = Icons.Filled.LocalFlorist,
+                contentDescription = null,
+                tint = PastelPink,
+                modifier = Modifier
+                    .size(20.dp)
+                    .offset(x = (-10).dp, y = 48.dp)
+                    .rotate(15f)
+                    .align(Alignment.CenterStart)
+                    .zIndex(2f)
+            )
+
+            // Right vine leaves and flowers
+            Icon(
+                imageVector = Icons.Filled.LocalFlorist,
+                contentDescription = null,
+                tint = PastelPink,
+                modifier = Modifier
+                    .size(26.dp)
+                    .offset(x = 12.dp, y = (-12).dp)
+                    .rotate(15f)
+                    .align(Alignment.TopEnd)
+                    .zIndex(2f)
+            )
+            Icon(
+                imageVector = Icons.Filled.Eco,
+                contentDescription = null,
+                tint = YellowGreen,
+                modifier = Modifier
+                    .size(26.dp)
+                    .offset(x = 14.dp, y = 18.dp)
+                    .rotate(45f)
+                    .align(Alignment.CenterEnd)
+                    .zIndex(2f)
+            )
+            Icon(
+                imageVector = Icons.Filled.Eco,
+                contentDescription = null,
+                tint = LightGreen,
+                modifier = Modifier
+                    .size(20.dp)
+                    .offset(x = 10.dp, y = 42.dp)
+                    .rotate(95f)
+                    .align(Alignment.CenterEnd)
+                    .zIndex(2f)
+            )
+
+            // Bottom edge leaves/flowers
+            Icon(
+                imageVector = Icons.Filled.Eco,
+                contentDescription = null,
+                tint = LightGreen,
+                modifier = Modifier
+                    .size(24.dp)
+                    .offset(x = (-60).dp, y = 10.dp)
+                    .rotate(180f)
+                    .align(Alignment.BottomCenter)
+                    .zIndex(2f)
+            )
+            Icon(
+                imageVector = Icons.Filled.Eco,
+                contentDescription = null,
+                tint = YellowGreen,
+                modifier = Modifier
+                    .size(20.dp)
+                    .offset(x = 60.dp, y = 8.dp)
+                    .rotate(120f)
+                    .align(Alignment.BottomCenter)
+                    .zIndex(2f)
+            )
+            Icon(
+                imageVector = Icons.Filled.LocalFlorist,
+                contentDescription = null,
+                tint = PastelPink,
+                modifier = Modifier
+                    .size(16.dp)
+                    .offset(x = 0.dp, y = 8.dp)
+                    .align(Alignment.BottomCenter)
+                    .zIndex(2f)
+            )
+
+            // 3. Floating Menu Bar card itself
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .zIndex(1f)
+                    .shadow(elevation = 12.dp, shape = RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(PureWhite)
+                    .border(2.dp, TurfGreen, RoundedCornerShape(24.dp))
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    FloraLensBottomBarItem(
+                        icon = Icons.Filled.Home,
+                        label = "Home",
+                        isSelected = currentRoute == "welcome",
+                        onClick = {
+                            navController.navigate("welcome") {
+                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
+                    FloraLensBottomBarItem(
+                        icon = Icons.Filled.CameraAlt,
+                        label = "Scan",
+                        isSelected = currentRoute == "scan",
+                        onClick = {
+                            navController.navigate("scan") {
+                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
+                    FloraLensBottomBarItem(
+                        icon = Icons.Filled.History,
+                        label = "History",
+                        isSelected = currentRoute == "history",
+                        onClick = {
+                            navController.navigate("history") {
+                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
                 }
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = LeafGreen,
-                unselectedIconColor = TextDark,
-                indicatorColor = PastelGreenCard
+            }
+        }
+    }
+}
+
+@Composable
+fun RowScope.FloraLensBottomBarItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .weight(1f)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = if (isSelected) LeafGreen else TextLight,
+                modifier = Modifier.size(24.dp)
             )
-        )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = label,
+                color = if (isSelected) LeafGreen else TextLight,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+            )
+        }
     }
 }

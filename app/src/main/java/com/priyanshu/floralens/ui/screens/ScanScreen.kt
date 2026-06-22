@@ -143,7 +143,7 @@ fun ScanScreen(viewModel: MainViewModel) {
             
             // If the snackbar is shown, clicking anywhere else should dismiss it
             if (showSnackbar) {
-                androidx.compose.foundation.layout.Box(
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .clickable { viewModel.dismissResult() }

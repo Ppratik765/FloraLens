@@ -35,14 +35,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.priyanshu.floralens.data.ScanResult
-import com.priyanshu.floralens.ui.theme.BotanicalGreen
-import com.priyanshu.floralens.ui.theme.LeafGreen
-import com.priyanshu.floralens.ui.theme.OliveGreen
-import com.priyanshu.floralens.ui.theme.PastelGreenCard
-import com.priyanshu.floralens.ui.theme.PastelPink
-import com.priyanshu.floralens.ui.theme.PastelYellow
-import com.priyanshu.floralens.ui.theme.PremiumWhite
-import com.priyanshu.floralens.ui.theme.TextDark
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import com.priyanshu.floralens.ui.theme.*
 
 @Composable
 fun VineSnackbar(
@@ -67,15 +63,50 @@ fun VineSnackbar(
             .padding(bottom = 56.dp) // Leave space for bottom nav
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
-            // Overlapping vines/decorations behind the box but peeking out
-            Icon(
-                imageVector = Icons.Filled.Park,
-                contentDescription = null,
-                tint = OliveGreen.copy(alpha = 0.6f),
+            // 1. Organic Canvas Vine Branches wrapping the border
+            Canvas(
                 modifier = Modifier
-                    .size(60.dp)
-                    .offset(x = (-20).dp, y = (-20).dp)
-                    .rotate(-15f)
+                    .matchParentSize()
+                    .zIndex(0f)
+            ) {
+                // Drawing winding vine paths on the left and right sides
+                val pathLeft = Path().apply {
+                    moveTo(15.dp.toPx(), size.height - 15.dp.toPx())
+                    quadraticTo(
+                        -25.dp.toPx(), size.height * 0.5f,
+                        25.dp.toPx(), 15.dp.toPx()
+                    )
+                }
+                drawPath(
+                    path = pathLeft,
+                    color = YellowGreen,
+                    style = Stroke(width = 4.dp.toPx())
+                )
+
+                val pathRight = Path().apply {
+                    moveTo(size.width - 15.dp.toPx(), 15.dp.toPx())
+                    quadraticTo(
+                        size.width + 25.dp.toPx(), size.height * 0.5f,
+                        size.width - 25.dp.toPx(), size.height - 15.dp.toPx()
+                    )
+                }
+                drawPath(
+                    path = pathRight,
+                    color = YellowGreen,
+                    style = Stroke(width = 4.dp.toPx())
+                )
+            }
+
+            // 2. Leaf and Flower Icons (more in amount, more pronounced, overlapping borders)
+            // Top Left Corner Ornaments
+            Icon(
+                imageVector = Icons.Filled.Eco,
+                contentDescription = null,
+                tint = YellowGreen,
+                modifier = Modifier
+                    .size(36.dp)
+                    .offset(x = (-16).dp, y = (-16).dp)
+                    .rotate(-30f)
                     .align(Alignment.TopStart)
                     .zIndex(2f)
             )
@@ -84,32 +115,128 @@ fun VineSnackbar(
                 contentDescription = null,
                 tint = PastelPink,
                 modifier = Modifier
-                    .size(40.dp)
-                    .offset(x = 10.dp, y = (-25).dp)
-                    .rotate(20f)
+                    .size(24.dp)
+                    .offset(x = 12.dp, y = (-20).dp)
+                    .rotate(15f)
+                    .align(Alignment.TopStart)
+                    .zIndex(2f)
+            )
+            Icon(
+                imageVector = Icons.Filled.Eco,
+                contentDescription = null,
+                tint = LightGreen,
+                modifier = Modifier
+                    .size(22.dp)
+                    .offset(x = (-22).dp, y = 20.dp)
+                    .rotate(-80f)
+                    .align(Alignment.TopStart)
+                    .zIndex(2f)
+            )
+
+            // Top Right Corner Ornaments
+            Icon(
+                imageVector = Icons.Filled.LocalFlorist,
+                contentDescription = null,
+                tint = PastelPink,
+                modifier = Modifier
+                    .size(32.dp)
+                    .offset(x = 14.dp, y = (-18).dp)
+                    .rotate(45f)
                     .align(Alignment.TopEnd)
                     .zIndex(2f)
             )
             Icon(
                 imageVector = Icons.Filled.Eco,
                 contentDescription = null,
-                tint = PastelYellow,
+                tint = LightGreen,
                 modifier = Modifier
-                    .size(48.dp)
-                    .offset(x = 20.dp, y = 20.dp)
-                    .rotate(130f)
-                    .align(Alignment.BottomEnd)
+                    .size(24.dp)
+                    .offset(x = (-16).dp, y = (-16).dp)
+                    .rotate(45f)
+                    .align(Alignment.TopEnd)
                     .zIndex(2f)
             )
             Icon(
                 imageVector = Icons.Filled.Eco,
                 contentDescription = null,
-                tint = LeafGreen.copy(alpha = 0.8f),
+                tint = YellowGreen,
                 modifier = Modifier
-                    .size(50.dp)
-                    .offset(x = (-15).dp, y = 30.dp)
+                    .size(22.dp)
+                    .offset(x = 20.dp, y = 24.dp)
+                    .rotate(105f)
+                    .align(Alignment.TopEnd)
+                    .zIndex(2f)
+            )
+
+            // Bottom Left Corner Ornaments
+            Icon(
+                imageVector = Icons.Filled.Eco,
+                contentDescription = null,
+                tint = LeafGreen.copy(alpha = 0.9f),
+                modifier = Modifier
+                    .size(38.dp)
+                    .offset(x = (-18).dp, y = 18.dp)
                     .rotate(-45f)
                     .align(Alignment.BottomStart)
+                    .zIndex(2f)
+            )
+            Icon(
+                imageVector = Icons.Filled.Eco,
+                contentDescription = null,
+                tint = YellowGreen,
+                modifier = Modifier
+                    .size(26.dp)
+                    .offset(x = (-24).dp, y = (-12).dp)
+                    .rotate(45f)
+                    .align(Alignment.BottomStart)
+                    .zIndex(2f)
+            )
+
+            // Bottom Right Corner Ornaments
+            Icon(
+                imageVector = Icons.Filled.Eco,
+                contentDescription = null,
+                tint = PastelYellow,
+                modifier = Modifier
+                    .size(40.dp)
+                    .offset(x = 18.dp, y = 18.dp)
+                    .rotate(130f)
+                    .align(Alignment.BottomEnd)
+                    .zIndex(2f)
+            )
+            Icon(
+                imageVector = Icons.Filled.LocalFlorist,
+                contentDescription = null,
+                tint = PastelPink,
+                modifier = Modifier
+                    .size(24.dp)
+                    .offset(x = 22.dp, y = (-12).dp)
+                    .rotate(-20f)
+                    .align(Alignment.BottomEnd)
+                    .zIndex(2f)
+            )
+
+            // Center edges
+            Icon(
+                imageVector = Icons.Filled.Eco,
+                contentDescription = null,
+                tint = LightGreen,
+                modifier = Modifier
+                    .size(20.dp)
+                    .offset(x = (-14).dp, y = 0.dp)
+                    .rotate(-90f)
+                    .align(Alignment.CenterStart)
+                    .zIndex(2f)
+            )
+            Icon(
+                imageVector = Icons.Filled.Eco,
+                contentDescription = null,
+                tint = YellowGreen,
+                modifier = Modifier
+                    .size(20.dp)
+                    .offset(x = 14.dp, y = 0.dp)
+                    .rotate(90f)
+                    .align(Alignment.CenterEnd)
                     .zIndex(2f)
             )
 
