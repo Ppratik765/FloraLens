@@ -26,6 +26,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,6 +50,7 @@ import com.priyanshu.floralens.ui.screens.ScanDetailsScreen
 import com.priyanshu.floralens.ui.screens.ScanScreen
 import com.priyanshu.floralens.ui.screens.WelcomeScreen
 import com.priyanshu.floralens.ui.theme.*
+import com.priyanshu.floralens.ui.components.ThemeToggleButton
 import com.priyanshu.floralens.viewmodel.MainViewModel
 
 class MainActivity : ComponentActivity() {
@@ -62,8 +64,21 @@ class MainActivity : ComponentActivity() {
         viewModel.setClassifier(classifier)
 
         setContent {
-            FloraLensTheme {
-                FloraLensApp(viewModel)
+            val isLightMode: Boolean by viewModel.isLightMode.collectAsState()
+
+            FloraLensTheme(darkTheme = !isLightMode) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    FloraLensApp(viewModel)
+
+                    ThemeToggleButton(
+                        isLightMode = isLightMode,
+                        onToggle = { viewModel.toggleTheme() },
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(top = 48.dp, start = 16.dp)
+                            .zIndex(100f)
+                    )
+                }
             }
         }
     }
@@ -153,6 +168,8 @@ fun FloraLensBottomBar(navController: NavHostController, currentRoute: String?) 
                 .fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
+            val canvasLineColor = YellowGreen
+
             // 1. Organic Canvas Vine Branches wrapping the border
             Canvas(
                 modifier = Modifier
@@ -169,7 +186,7 @@ fun FloraLensBottomBar(navController: NavHostController, currentRoute: String?) 
                 }
                 drawPath(
                     path = pathLeft,
-                    color = YellowGreen,
+                    color = canvasLineColor,
                     style = Stroke(width = 3.dp.toPx())
                 )
 
@@ -182,7 +199,7 @@ fun FloraLensBottomBar(navController: NavHostController, currentRoute: String?) 
                 }
                 drawPath(
                     path = pathRight,
-                    color = YellowGreen,
+                    color = canvasLineColor,
                     style = Stroke(width = 3.dp.toPx())
                 )
             }

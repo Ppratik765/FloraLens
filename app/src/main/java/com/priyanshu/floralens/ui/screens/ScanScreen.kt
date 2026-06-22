@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Eco
+import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -92,6 +93,7 @@ fun ScanScreen(viewModel: MainViewModel, onScanSaved: () -> Unit = {}) {
 
     val appState by viewModel.appState.collectAsState()
     var latestBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var isFlashlightOn by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -118,16 +120,34 @@ fun ScanScreen(viewModel: MainViewModel, onScanSaved: () -> Unit = {}) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(3f / 4f)
+                        .aspectRatio(1f)
                         .padding(16.dp)
                         .align(Alignment.Center)
                 ) {
                     CameraPreview(
+                        isFlashlightOn = isFlashlightOn,
                         onImageCaptured = { bitmap ->
                             latestBitmap = bitmap
                         },
                         modifier = Modifier.fillMaxSize()
                     )
+
+                    // Flashlight toggle button
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(DeepForest.copy(alpha = 0.6f))
+                            .clickable { isFlashlightOn = !isFlashlightOn }
+                            .padding(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Lightbulb,
+                            contentDescription = "Toggle Flashlight",
+                            tint = if (isFlashlightOn) FloraVibrant else PremiumWhite
+                        )
+                    }
                 }
             } else {
                 Box(

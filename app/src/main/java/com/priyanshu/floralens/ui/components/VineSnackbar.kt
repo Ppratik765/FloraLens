@@ -33,6 +33,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.zIndex
 import com.priyanshu.floralens.data.ScanResult
 import androidx.compose.foundation.Canvas
@@ -63,6 +64,8 @@ fun VineSnackbar(
             .padding(bottom = 56.dp) // Leave space for bottom nav
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
+            val canvasLineColor = YellowGreen
+
             // 1. Organic Canvas Vine Branches wrapping the border
             Canvas(
                 modifier = Modifier
@@ -79,7 +82,7 @@ fun VineSnackbar(
                 }
                 drawPath(
                     path = pathLeft,
-                    color = YellowGreen,
+                    color = canvasLineColor,
                     style = Stroke(width = 4.dp.toPx())
                 )
 
@@ -92,7 +95,7 @@ fun VineSnackbar(
                 }
                 drawPath(
                     path = pathRight,
-                    color = YellowGreen,
+                    color = canvasLineColor,
                     style = Stroke(width = 4.dp.toPx())
                 )
             }
@@ -274,10 +277,11 @@ fun VineSnackbar(
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold
                                 )
-                                Text(
+                                BulletedText(
                                     text = scanResult.cause,
                                     color = TextDark,
-                                    style = MaterialTheme.typography.bodyMedium
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    lineHeight = 1.5.em
                                 )
                             }
                         }
@@ -296,10 +300,11 @@ fun VineSnackbar(
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold
                                 )
-                                Text(
+                                BulletedText(
                                     text = scanResult.treatment,
                                     color = TextDark,
-                                    style = MaterialTheme.typography.bodyMedium
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    lineHeight = 1.5.em
                                 )
                             }
                         }

@@ -38,6 +38,13 @@ class MainViewModel : ViewModel() {
     private val _plantProfiles = MutableStateFlow<List<PlantProfile>>(emptyList())
     val plantProfiles: StateFlow<List<PlantProfile>> = _plantProfiles.asStateFlow()
 
+    private val _isLightMode = MutableStateFlow(false)
+    val isLightMode: StateFlow<Boolean> = _isLightMode.asStateFlow()
+
+    fun toggleTheme() {
+        _isLightMode.value = !_isLightMode.value
+    }
+
     // Legacy compatibility: flat list derived from profiles
     val scanHistory: StateFlow<List<ScanResult>>
         get() = MutableStateFlow(
@@ -58,6 +65,15 @@ class MainViewModel : ViewModel() {
         this.classifier = classifier
     }
 
+    private fun cropToSquare(bitmap: Bitmap): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+        val size = minOf(width, height)
+        val x = (width - size) / 2
+        val y = (height - size) / 2
+        return Bitmap.createBitmap(bitmap, x, y, size, size)
+    }
+
     fun analyzeImage(bitmap: Bitmap) {
         if (_appState.value is AppState.Analyzing) return
         val currentClassifier = classifier ?: return
@@ -65,7 +81,8 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch(Dispatchers.Default) {
             _appState.value = AppState.Analyzing
             try {
-                val classification = currentClassifier.classify(bitmap)
+                val croppedBitmap = cropToSquare(bitmap)
+                val classification = currentClassifier.classify(croppedBitmap)
 
                 if (classification.isPlantDetected) {
                     val info = DiseaseDatabase.getInfo(classification.diseaseName)
@@ -86,14 +103,14 @@ class MainViewModel : ViewModel() {
                         _appState.value = AppState.AwaitingPlantSelection(
                             classification = classification,
                             scanResult = scanResult,
-                            bitmap = bitmap
+                            bitmap = croppedBitmap
                         )
                     } else {
                         // Normal scan — ask user to select new or existing plant
                         _appState.value = AppState.AwaitingPlantSelection(
                             classification = classification,
                             scanResult = scanResult,
-                            bitmap = bitmap
+                            bitmap = croppedBitmap
                         )
                     }
                 } else {

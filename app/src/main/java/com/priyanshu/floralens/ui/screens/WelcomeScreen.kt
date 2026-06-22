@@ -158,7 +158,7 @@ fun WelcomeScreen() {
                     TechRow(
                         icon = Icons.Filled.Settings,
                         title = "INT8 Quantization",
-                        description = "The TensorFlow model was post-quantized to 8-bit integers (INT8). This compressed the model to a compact ~3MB file, dramatically speeding up inference speed on mobile devices."
+                        description = "The TensorFlow model was post-quantized to 8-bit integers (INT8). This compression dramatically speeds up inference on mobile devices."
                     )
 
                 }

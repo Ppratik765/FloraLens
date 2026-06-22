@@ -85,6 +85,9 @@ fun BotanicalBackgroundDecorations() {
                 .align(Alignment.TopStart)
         )
 
+        val path1Color = LeafGreen.copy(alpha = 0.15f)
+        val path2Color = OliveGreen.copy(alpha = 0.15f)
+
         // Organic Canvas Vine Drawing
         Canvas(modifier = Modifier.fillMaxSize()) {
             val path1 = Path().apply {
@@ -96,7 +99,7 @@ fun BotanicalBackgroundDecorations() {
             }
             drawPath(
                 path = path1,
-                color = LeafGreen.copy(alpha = 0.15f),
+                color = path1Color,
                 style = Stroke(width = 12.dp.toPx())
             )
             
@@ -109,7 +112,7 @@ fun BotanicalBackgroundDecorations() {
             }
             drawPath(
                 path = path2,
-                color = OliveGreen.copy(alpha = 0.15f),
+                color = path2Color,
                 style = Stroke(width = 8.dp.toPx())
             )
         }

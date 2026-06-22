@@ -49,9 +49,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import com.priyanshu.floralens.data.PlantProfile
 import com.priyanshu.floralens.data.ScanResult
 import com.priyanshu.floralens.ui.components.BotanicalBackgroundDecorations
+import com.priyanshu.floralens.ui.components.BulletedText
 import com.priyanshu.floralens.ui.theme.*
 import com.priyanshu.floralens.util.PdfReportGenerator
 import com.priyanshu.floralens.viewmodel.MainViewModel
@@ -290,10 +292,11 @@ fun ScanDetailCard(scan: ScanResult, scanNumber: Int) {
                         fontWeight = FontWeight.Bold,
                         color = FloraVibrant
                     )
-                    Text(
+                    BulletedText(
                         text = scan.cause,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextPrimary
+                        color = TextPrimary,
+                        lineHeight = 1.5.em
                     )
                 }
             }
@@ -315,10 +318,11 @@ fun ScanDetailCard(scan: ScanResult, scanNumber: Int) {
                         fontWeight = FontWeight.Bold,
                         color = FloraVibrant
                     )
-                    Text(
+                    BulletedText(
                         text = scan.treatment,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextPrimary
+                        color = TextPrimary,
+                        lineHeight = 1.5.em
                     )
                 }
             }

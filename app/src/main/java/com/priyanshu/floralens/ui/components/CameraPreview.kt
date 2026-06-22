@@ -13,7 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -27,6 +31,7 @@ import java.util.concurrent.Executors
 
 @Composable
 fun CameraPreview(
+    isFlashlightOn: Boolean,
     onImageCaptured: (Bitmap) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -34,6 +39,11 @@ fun CameraPreview(
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
     val cameraExecutor: ExecutorService = remember { Executors.newSingleThreadExecutor() }
+    var cameraControl by remember { mutableStateOf<androidx.camera.core.CameraControl?>(null) }
+
+    LaunchedEffect(isFlashlightOn, cameraControl) {
+        cameraControl?.enableTorch(isFlashlightOn)
+    }
 
     Box(
         modifier = modifier
@@ -44,6 +54,16 @@ fun CameraPreview(
             factory = { ctx ->
                 val previewView = PreviewView(ctx).apply {
                     this.scaleType = PreviewView.ScaleType.FILL_CENTER
+                    setOnTouchListener { view, event ->
+                        if (event.action == android.view.MotionEvent.ACTION_UP) {
+                            val factory = this.meteringPointFactory
+                            val point = factory.createPoint(event.x, event.y)
+                            val action = androidx.camera.core.FocusMeteringAction.Builder(point).build()
+                            cameraControl?.startFocusAndMetering(action)
+                            view.performClick()
+                        }
+                        true
+                    }
                 }
 
                 cameraProviderFuture.addListener({
@@ -69,12 +89,13 @@ fun CameraPreview(
 
                     try {
                         cameraProvider.unbindAll()
-                        cameraProvider.bindToLifecycle(
+                        val camera = cameraProvider.bindToLifecycle(
                             lifecycleOwner,
                             cameraSelector,
                             preview,
                             imageAnalysis
                         )
+                        cameraControl = camera.cameraControl
                     } catch (exc: Exception) {
                         Log.e("CameraPreview", "Use case binding failed", exc)
                     }
