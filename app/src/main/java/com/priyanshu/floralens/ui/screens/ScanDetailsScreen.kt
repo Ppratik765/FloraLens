@@ -1,5 +1,6 @@
 package com.priyanshu.floralens.ui.screens
 
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.widget.Toast
 import androidx.compose.animation.core.RepeatMode
@@ -102,12 +103,21 @@ fun ScanDetailsScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    val success = PdfReportGenerator.generateReport(context, profile)
-                    Toast.makeText(
-                        context,
-                        if (success) "PDF saved to Downloads!" else "Failed to generate PDF",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    val uri = PdfReportGenerator.generateReport(context, profile)
+                    if (uri != null) {
+                        Toast.makeText(context, "PDF saved to Downloads!", Toast.LENGTH_SHORT).show()
+                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                            setDataAndType(uri, "application/pdf")
+                            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
+                        }
+                        try {
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "No PDF viewer found", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(context, "Failed to generate PDF", Toast.LENGTH_SHORT).show()
+                    }
                 },
                 containerColor = FloraVibrant,
                 contentColor = DeepForest,

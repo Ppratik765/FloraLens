@@ -74,8 +74,8 @@ class MainActivity : ComponentActivity() {
                         isLightMode = isLightMode,
                         onToggle = { viewModel.toggleTheme() },
                         modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(top = 48.dp, start = 16.dp)
+                            .align(Alignment.TopEnd)
+                            .padding(top = 48.dp, end = 16.dp)
                             .zIndex(100f)
                     )
                 }

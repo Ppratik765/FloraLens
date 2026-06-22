@@ -9,6 +9,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.Typeface
 import android.graphics.pdf.PdfDocument
+import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
@@ -29,7 +30,7 @@ object PdfReportGenerator {
     private const val MARGIN = 40f
     private const val CONTENT_WIDTH = PAGE_WIDTH - 2 * MARGIN.toInt()
 
-    fun generateReport(context: Context, profile: PlantProfile): Boolean {
+    fun generateReport(context: Context, profile: PlantProfile): Uri? {
         return try {
             val document = PdfDocument()
             var pageNumber = 1
@@ -194,12 +195,12 @@ object PdfReportGenerator {
 
             // Save to Downloads
             val fileName = "FloraLens_${profile.customName.replace(" ", "_")}_${System.currentTimeMillis()}.pdf"
-            val saved = saveToDownloads(context, document, fileName)
+            val savedUri = saveToDownloads(context, document, fileName)
             document.close()
-            saved
+            savedUri
         } catch (e: Exception) {
             e.printStackTrace()
-            false
+            null
         }
     }
 
@@ -255,26 +256,43 @@ object PdfReportGenerator {
         }
     }
 
-    private fun saveToDownloads(context: Context, document: PdfDocument, fileName: String): Boolean {
+    private fun saveToDownloads(context: Context, document: PdfDocument, fileName: String): Uri? {
         return try {
-            val contentValues = ContentValues().apply {
-                put(MediaStore.Downloads.DISPLAY_NAME, fileName)
-                put(MediaStore.Downloads.MIME_TYPE, "application/pdf")
-                put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.Downloads.DISPLAY_NAME, fileName)
+                    put(MediaStore.Downloads.MIME_TYPE, "application/pdf")
+                    put(MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                }
 
-            val uri = context.contentResolver.insert(
-                MediaStore.Downloads.EXTERNAL_CONTENT_URI,
-                contentValues
-            ) ?: return false
+                val uri = context.contentResolver.insert(
+                    MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                    contentValues
+                ) ?: return null
 
-            context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                document.writeTo(outputStream)
+                context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    document.writeTo(outputStream)
+                }
+                uri
+            } else {
+                @Suppress("DEPRECATION")
+                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                if (!downloadsDir.exists()) downloadsDir.mkdirs()
+                
+                val file = File(downloadsDir, fileName)
+                FileOutputStream(file).use { outputStream ->
+                    document.writeTo(outputStream)
+                }
+                
+                androidx.core.content.FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.provider",
+                    file
+                )
             }
-            true
         } catch (e: Exception) {
             e.printStackTrace()
-            false
+            null
         }
     }
 }

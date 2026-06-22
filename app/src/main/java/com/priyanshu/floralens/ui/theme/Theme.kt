@@ -28,7 +28,7 @@ fun FloraLensTheme(
 ) {
     val targetColors = if (darkTheme) DarkFloraColors else LightFloraColors
 
-    val animationSpec = tween<Color>(durationMillis = 800)
+    val animationSpec = tween<Color>(durationMillis = 250)
 
     val animatedFloraVibrant by animateColorAsState(targetColors.floraVibrant, animationSpec, label = "ColorAnimation")
     val animatedFloraLight by animateColorAsState(targetColors.floraLight, animationSpec, label = "ColorAnimation")
