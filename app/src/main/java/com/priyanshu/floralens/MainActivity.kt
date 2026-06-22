@@ -26,25 +26,26 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.priyanshu.floralens.classifier.TFLiteImageClassifier
-import com.priyanshu.floralens.ui.screens.HistoryScreen
+import com.priyanshu.floralens.ui.screens.HistoryTimelineScreen
+import com.priyanshu.floralens.ui.screens.ScanDetailsScreen
 import com.priyanshu.floralens.ui.screens.ScanScreen
 import com.priyanshu.floralens.ui.screens.WelcomeScreen
 import com.priyanshu.floralens.ui.theme.*
@@ -74,8 +75,8 @@ fun FloraLensApp(viewModel: MainViewModel) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Hide bottom bar on scan screen
-    val bottomBarVisible = currentRoute != "scan"
+    // Hide bottom bar on scan screen and details screen
+    val bottomBarVisible = currentRoute != "scan" && currentRoute?.startsWith("plant_details") != true
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -100,12 +101,38 @@ fun FloraLensApp(viewModel: MainViewModel) {
                 }
             }
             composable("scan") {
-                ScanScreen(viewModel = viewModel)
+                ScanScreen(
+                    viewModel = viewModel,
+                    onScanSaved = {
+                        // After saving, navigate back or stay
+                    }
+                )
             }
             composable("history") {
                 Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-                    HistoryScreen(viewModel = viewModel)
+                    HistoryTimelineScreen(
+                        viewModel = viewModel,
+                        onPlantClick = { plantId ->
+                            navController.navigate("plant_details/$plantId")
+                        }
+                    )
                 }
+            }
+            composable(
+                route = "plant_details/{plantId}",
+                arguments = listOf(navArgument("plantId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val plantId = backStackEntry.arguments?.getString("plantId") ?: return@composable
+                ScanDetailsScreen(
+                    viewModel = viewModel,
+                    plantId = plantId,
+                    onUpdateCondition = { id ->
+                        viewModel.setPendingPlantId(id)
+                        navController.navigate("scan") {
+                            launchSingleTop = true
+                        }
+                    }
+                )
             }
         }
     }

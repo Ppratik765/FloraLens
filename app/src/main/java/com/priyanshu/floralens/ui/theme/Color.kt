@@ -2,20 +2,32 @@ package com.priyanshu.floralens.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val TurfGreen = Color(0xFF1C7C54)
-val LightGreen = Color(0xFF73E2A7)
-val TeaGreen = Color(0xFFDEF4C6)
-val DarkSpruce = Color(0xFF1B512D)
-val YellowGreen = Color(0xFFB1CF5F)
+// ── FloraLens V5 Vibrant Palette ──
+val FloraVibrant = Color(0xFF2AFF73)       // Primary accent
+val FloraLight = Color(0xFFC0FFDB)         // Lighter tint for highlights
+val FloraDark = Color(0xFF00C853)          // Darker shade for borders/pressed states
+val DeepForest = Color(0xFF0D1F12)         // Dark background
+val CardSurface = Color(0xFF142E1A)        // Card/surface backgrounds
+val CardBorder = Color(0xFF1E4A28)         // Card borders/accent containers
+val TextPrimary = Color(0xFFE8FFF0)        // Main text — high contrast on dark
+val TextSecondary = Color(0xFF8BDEAA)      // Secondary text
 
-val PremiumWhite = Color(0xFF24663E)             // Primary background (slightly lighter forest green)
-val PureWhite = Color(0xFF143B22)          // Card/Surface backgrounds
-val PastelGreenCard = Color(0xFF236E46)     // Inner card/accent container background
-val BotanicalGreen = YellowGreen            // Secondary/FAB accent color
-val LeafGreen = LightGreen                 // Primary/Title green
-val OliveGreen = TurfGreen                  // Tertiary/Details green
-val PastelPink = LightGreen                 // Floral accents
-val PastelYellow = TeaGreen                 // Highlights/Treatments
-val TextDark = TeaGreen                     // Main text: high contrast on DarkSpruce
-val TextLight = YellowGreen                 // Secondary text
-val SoftShadow = Color(0x4D000000)          // Shadow color
+// ── Backward-compatible aliases ──
+val PremiumWhite = DeepForest              // Primary background
+val PureWhite = CardSurface               // Card/Surface backgrounds
+val PastelGreenCard = CardBorder           // Inner card/accent container background
+val BotanicalGreen = FloraVibrant          // Primary vibrant accent
+val LeafGreen = FloraLight                 // Title/heading accent
+val OliveGreen = FloraDark                 // Tertiary / pressed accent
+val PastelPink = FloraLight                // Floral accents (now mint)
+val PastelYellow = TextPrimary             // Highlights/Treatment text
+val TextDark = TextPrimary                 // Main text color
+val TextLight = TextSecondary              // Secondary text
+val SoftShadow = Color(0x4D000000)         // Shadow color
+
+// ── Extra named colors for direct use ──
+val TurfGreen = FloraDark
+val LightGreen = FloraLight
+val TeaGreen = TextPrimary
+val DarkSpruce = DeepForest
+val YellowGreen = TextSecondary

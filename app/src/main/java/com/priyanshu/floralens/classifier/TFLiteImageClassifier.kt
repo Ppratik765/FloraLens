@@ -46,18 +46,26 @@ class TFLiteImageClassifier(context: Context) {
     }
 
     fun classify(bitmap: Bitmap): com.priyanshu.floralens.data.ClassificationResult {
-        val resizedBitmap = Bitmap.createScaledBitmap(bitmap, 384, 384, true)
-        val byteBuffer = convertBitmapToByteBuffer(resizedBitmap)
+        val byteBuffer = convertBitmapToByteBuffer(bitmap)
 
         // Output shape [1, 38]
         val output = Array(1) { FloatArray(38) }
         interpreter.run(byteBuffer, output)
 
-        val probabilities = softmax(output[0])
+        val rawOutput = output[0]
+        val sum = rawOutput.sum()
+        // Check if output is already softmaxed
+        val isAlreadySoftmax = sum in 0.9f..1.1f && rawOutput.all { it in 0.0f..1.0f }
+        val probabilities = if (isAlreadySoftmax) {
+            rawOutput
+        } else {
+            softmax(rawOutput)
+        }
+
         val maxIndex = probabilities.indices.maxByOrNull { probabilities[it] } ?: -1
         val maxProb = if (maxIndex != -1) probabilities[maxIndex] else 0f
 
-        return if (maxProb < 0.75f) {
+        return if (maxProb < 0.50f) {
             com.priyanshu.floralens.data.ClassificationResult(
                 diseaseName = "No clear plant detected. Please try again.",
                 confidence = maxProb,
@@ -79,29 +87,52 @@ class TFLiteImageClassifier(context: Context) {
     }
 
     private fun convertBitmapToByteBuffer(bitmap: Bitmap): ByteBuffer {
-        // Model expects [1, 3, 384, 384] NCHW Float32
-        val byteBuffer = ByteBuffer.allocateDirect(1 * 3 * 384 * 384 * 4)
+        val inputTensor = interpreter.getInputTensor(0)
+        val shape = inputTensor.shape()
+        val isNCHW = shape.size == 4 && shape[1] == 3
+
+        val height = shape[if (isNCHW) 2 else 1]
+        val width = shape[if (isNCHW) 3 else 2]
+        val channels = shape[if (isNCHW) 1 else 3]
+
+        val byteBuffer = ByteBuffer.allocateDirect(1 * channels * height * width * 4)
         byteBuffer.order(ByteOrder.nativeOrder())
 
-        val intValues = IntArray(384 * 384)
-        bitmap.getPixels(intValues, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+        val resized = if (bitmap.width != width || bitmap.height != height) {
+            Bitmap.createScaledBitmap(bitmap, width, height, true)
+        } else {
+            bitmap
+        }
+
+        val intValues = IntArray(width * height)
+        resized.getPixels(intValues, 0, resized.width, 0, 0, resized.width, resized.height)
 
         val mean = floatArrayOf(0.485f, 0.456f, 0.406f)
         val std  = floatArrayOf(0.229f, 0.224f, 0.225f)
 
-        // Write all R channel values first (NCHW)
-        for (pixel in intValues) {
-            byteBuffer.putFloat(((pixel shr 16 and 0xFF) / 255.0f - mean[0]) / std[0])
+        if (isNCHW) {
+            for (pixel in intValues) {
+                val r = ((pixel shr 16) and 0xFF) / 255.0f
+                byteBuffer.putFloat((r - mean[0]) / std[0])
+            }
+            for (pixel in intValues) {
+                val g = ((pixel shr 8) and 0xFF) / 255.0f
+                byteBuffer.putFloat((g - mean[1]) / std[1])
+            }
+            for (pixel in intValues) {
+                val b = (pixel and 0xFF) / 255.0f
+                byteBuffer.putFloat((b - mean[2]) / std[2])
+            }
+        } else {
+            for (pixel in intValues) {
+                val r = ((pixel shr 16) and 0xFF) / 255.0f
+                val g = ((pixel shr 8) and 0xFF) / 255.0f
+                val b = (pixel and 0xFF) / 255.0f
+                byteBuffer.putFloat((r - mean[0]) / std[0])
+                byteBuffer.putFloat((g - mean[1]) / std[1])
+                byteBuffer.putFloat((b - mean[2]) / std[2])
+            }
         }
-        // Write all G channel values
-        for (pixel in intValues) {
-            byteBuffer.putFloat(((pixel shr 8 and 0xFF) / 255.0f - mean[1]) / std[1])
-        }
-        // Write all B channel values
-        for (pixel in intValues) {
-            byteBuffer.putFloat(((pixel and 0xFF) / 255.0f - mean[2]) / std[2])
-        }
-
         return byteBuffer
     }
 

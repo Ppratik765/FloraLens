@@ -120,7 +120,7 @@ fun WelcomeScreen() {
             InfoCard(
                 icon = Icons.Filled.LocalFlorist,
                 title = "3. Organic Treatment",
-                description = "If a disease is detected with high confidence (>= 75%), the app displays its causes and complete organic treatments."
+                description = "If a disease is detected, the app displays its causes and complete organic treatments."
             )
 
             Spacer(modifier = Modifier.height(28.dp))

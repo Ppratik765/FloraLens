@@ -1,37 +1,33 @@
 package com.priyanshu.floralens.ui.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 
-private val PastelColorScheme = lightColorScheme(
-    primary = LeafGreen,
-    secondary = BotanicalGreen,
-    tertiary = OliveGreen,
-    background = PremiumWhite,
-    surface = PureWhite,
-    surfaceVariant = PastelGreenCard,
-    onPrimary = DarkSpruce,
-    onSecondary = DarkSpruce,
-    onTertiary = PureWhite,
-    onBackground = TextDark,
-    onSurface = TextDark,
-    onSurfaceVariant = TextDark
+private val FloraColorScheme = lightColorScheme(
+    primary = FloraVibrant,
+    secondary = FloraDark,
+    tertiary = FloraLight,
+    background = DeepForest,
+    surface = CardSurface,
+    surfaceVariant = CardBorder,
+    onPrimary = DeepForest,
+    onSecondary = TextPrimary,
+    onTertiary = DeepForest,
+    onBackground = TextPrimary,
+    onSurface = TextPrimary,
+    onSurfaceVariant = TextSecondary
 )
 
 @Composable
 fun FloraLensTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(), // Ignored to force bright botanical theme
-    dynamicColor: Boolean = false, // Disabled dynamic color to force Botanical theme
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    // We enforce the bright pastel theme to maintain the "Digital Botanical Garden" aesthetic
     MaterialTheme(
-        colorScheme = PastelColorScheme,
+        colorScheme = FloraColorScheme,
         typography = Typography,
         content = content
     )
