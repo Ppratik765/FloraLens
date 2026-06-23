@@ -283,14 +283,18 @@ fun PlantSelectionOverlay(viewModel: MainViewModel, onSaved: () -> Unit = {}, mo
     androidx.compose.material3.Surface(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .animateContentSize(animationSpec = tween(150)),
+            .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(24.dp),
         color = FloraTheme.colors.cardSurface,
         border = androidx.compose.foundation.BorderStroke(2.dp, FloraTheme.colors.cardBorder),
         shadowElevation = 16.dp
     ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .animateContentSize(animationSpec = tween(150))
+                .padding(20.dp)
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Filled.Eco,
