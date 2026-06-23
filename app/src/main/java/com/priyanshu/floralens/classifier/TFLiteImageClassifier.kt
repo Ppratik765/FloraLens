@@ -71,6 +71,13 @@ class TFLiteImageClassifier(context: Context) {
             softmax(rawOutput)
         }
 
+        // Artificially boost "healthy" classes to reduce false-positive diseases
+        for (i in labels.indices) {
+            if (i < probabilities.size && labels[i].contains("healthy", ignoreCase = true)) {
+                probabilities[i] *= 1.5f // 50% boost
+            }
+        }
+
         val maxIndex = probabilities.indices.maxByOrNull { probabilities[it] } ?: -1
         val maxProb = if (maxIndex != -1) probabilities[maxIndex] else 0f
 
