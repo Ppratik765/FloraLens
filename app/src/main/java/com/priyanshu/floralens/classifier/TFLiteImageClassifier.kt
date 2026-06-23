@@ -114,8 +114,8 @@ class TFLiteImageClassifier(context: Context) {
             val sat = hsv[1]
             val v = hsv[2]
 
-            // Organic plant matter: Hue between 20 (brown/yellow) and 160 (deep green)
-            if (hue in 20f..160f && sat > 0.12f && v > 0.15f) {
+            // Strict Organic plant matter: Hue between 40 (yellow-green) and 150 (deep green)
+            if (hue in 40f..150f && sat > 0.25f && v > 0.15f) {
                 organicPixels++
             }
         }
@@ -123,7 +123,7 @@ class TFLiteImageClassifier(context: Context) {
         if (scaled != bitmap) scaled.recycle()
 
         val ratio = organicPixels.toFloat() / pixels.size
-        return ratio > 0.05f // Require at least 5% organic pixels
+        return ratio > 0.15f // Require at least 15% organic plant pixels
     }
 
     private fun convertBitmapToByteBuffer(bitmap: Bitmap): ByteBuffer {

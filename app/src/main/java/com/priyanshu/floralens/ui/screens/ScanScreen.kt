@@ -11,7 +11,10 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -59,10 +62,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import android.view.SoundEffectConstants
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -102,6 +105,9 @@ fun ScanScreen(viewModel: MainViewModel, onScanSaved: () -> Unit = {}) {
     var latestBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var isFlashlightOn by remember { mutableStateOf(false) }
 
+    val view = LocalView.current
+    val haptic = LocalHapticFeedback.current
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
@@ -109,6 +115,8 @@ fun ScanScreen(viewModel: MainViewModel, onScanSaved: () -> Unit = {}) {
                 DiagnoseFAB(
                     isAnalyzing = appState is AppState.Analyzing,
                     onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        view.playSoundEffect(SoundEffectConstants.CLICK)
                         latestBitmap?.let { viewModel.analyzeImage(it) }
                     }
                 )
@@ -168,34 +176,74 @@ fun ScanScreen(viewModel: MainViewModel, onScanSaved: () -> Unit = {}) {
                 }
             }
 
-            // Plant Selection Overlay (for successful detections)
-            if (appState is AppState.AwaitingPlantSelection) {
-                PlantSelectionOverlay(
-                    viewModel = viewModel,
-                    onSaved = onScanSaved,
-                    modifier = Modifier.align(Alignment.TopCenter)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 16.dp, top = 24.dp)
+                    .animateContentSize(animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow)),
+                verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Bottom)
+            ) {
+                // Plant Selection Overlay (Only takes as much height as it needs)
+                if (appState is AppState.AwaitingPlantSelection) {
+                    PlantSelectionOverlay(
+                        viewModel = viewModel,
+                        onSaved = onScanSaved,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                // VineSnackbar (Takes remaining space and becomes scrollable)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false)
+                ) {
+                    val showSnackbar = appState is AppState.Result || appState is AppState.Error || appState is AppState.AwaitingPlantSelection
+                    val errorMessage = when (val state = appState) {
+                        is AppState.Result -> if (state.scanResult == null) state.classification.diseaseName else null
+                        is AppState.Error -> state.message
+                        else -> null
+                    }
+                    val scanResult = when (val state = appState) {
+                        is AppState.Result -> state.scanResult
+                        is AppState.AwaitingPlantSelection -> state.scanResult
+                        else -> null
+                    }
+
+                    VineSnackbar(
+                        scanResult = scanResult,
+                        errorMessage = errorMessage,
+                        isVisible = showSnackbar,
+                        modifier = Modifier.align(Alignment.BottomCenter)
+                    )
+                }
+            }
+
+            LaunchedEffect(appState) {
+                when (appState) {
+                    is AppState.Result, is AppState.Error, is AppState.AwaitingPlantSelection -> {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        view.playSoundEffect(SoundEffectConstants.NAVIGATION_UP)
+                    }
+                    is AppState.Idle -> {
+                        view.playSoundEffect(SoundEffectConstants.NAVIGATION_DOWN)
+                    }
+                    else -> {}
+                }
+            }
+
+            // Dismiss on tap ONLY if it's an error or a result without the plant selection overlay
+            val isDismissibleOverlay = (appState is AppState.Result && appState !is AppState.AwaitingPlantSelection) || appState is AppState.Error
+            if (isDismissibleOverlay) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                            indication = null
+                        ) { viewModel.dismissResult() }
                 )
             }
-
-            // VineSnackbar for errors / low confidence or during plant selection
-            val showSnackbar = appState is AppState.Result || appState is AppState.Error || appState is AppState.AwaitingPlantSelection
-            val errorMessage = when (val state = appState) {
-                is AppState.Result -> if (state.scanResult == null) state.classification.diseaseName else null
-                is AppState.Error -> state.message
-                else -> null
-            }
-            val scanResult = when (val state = appState) {
-                is AppState.Result -> state.scanResult
-                is AppState.AwaitingPlantSelection -> state.scanResult
-                else -> null
-            }
-
-            VineSnackbar(
-                scanResult = scanResult,
-                errorMessage = errorMessage,
-                isVisible = showSnackbar,
-                modifier = Modifier.align(Alignment.BottomCenter)
-            )
 
             // Intercept back presses to prevent accidental dismissal
             var backPressTime by remember { mutableStateOf(0L) }
@@ -235,7 +283,7 @@ fun PlantSelectionOverlay(viewModel: MainViewModel, onSaved: () -> Unit = {}, mo
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(top = 48.dp, start = 16.dp, end = 16.dp)
+            .padding(horizontal = 16.dp)
             .shadow(16.dp, RoundedCornerShape(24.dp))
             .clip(RoundedCornerShape(24.dp))
             .background(FloraTheme.colors.cardSurface)
@@ -383,8 +431,6 @@ fun PlantSelectionOverlay(viewModel: MainViewModel, onSaved: () -> Unit = {}, mo
 
 @Composable
 fun DiagnoseFAB(isAnalyzing: Boolean, onClick: () -> Unit) {
-    val haptic = LocalHapticFeedback.current
-    val view = LocalView.current
     val infiniteTransition = rememberInfiniteTransition(label = "FAB pulse")
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
@@ -397,11 +443,7 @@ fun DiagnoseFAB(isAnalyzing: Boolean, onClick: () -> Unit) {
     )
 
     FloatingActionButton(
-        onClick = {
-            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-            view.playSoundEffect(SoundEffectConstants.CLICK)
-            onClick()
-        },
+        onClick = onClick,
         containerColor = FloraVibrant,
         contentColor = DeepForest,
         modifier = Modifier.scale(scale)
