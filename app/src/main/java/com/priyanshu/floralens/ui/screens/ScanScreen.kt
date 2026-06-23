@@ -389,7 +389,7 @@ fun PlantSelectionOverlay(viewModel: MainViewModel, onSaved: () -> Unit = {}, mo
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                     LazyColumn(
-                        modifier = Modifier.height((profiles.size * 52).coerceAtMost(200).dp),
+                        modifier = Modifier.height((profiles.size * 52).coerceAtMost(110).dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(profiles) { profile ->
