@@ -109,47 +109,122 @@ fun HistoryTimelineScreen(viewModel: MainViewModel, onPlantClick: (String) -> Un
             if (profiles.isEmpty()) {
                 EmptyTimelineState()
             } else {
-                // Timeline LazyRow
                 val sortedProfiles = profiles.sortedByDescending { it.latestTimestamp }
+                val chunkedProfiles = sortedProfiles.chunked(2)
                 val timelineColor = FloraVibrant
+                val strokeWidth = 4.dp
 
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 32.dp),
-                    horizontalArrangement = Arrangement.spacedBy(24.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .drawBehind {
-                            // Draw continuous horizontal timeline stroke
-                            val lineY = 80.dp.toPx() // Center of the thumbnails area
-                            drawLine(
-                                color = timelineColor.copy(alpha = 0.4f),
-                                start = Offset(0f, lineY),
-                                end = Offset(size.width, lineY),
-                                strokeWidth = 3.dp.toPx()
-                            )
-                        }
+                androidx.compose.foundation.lazy.LazyColumn(
+                    contentPadding = PaddingValues(top = 24.dp, bottom = 120.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    itemsIndexed(sortedProfiles) { index, profile ->
-                        TimelineNode(
-                            profile = profile,
-                            onClick = { onPlantClick(profile.plantId) }
+                    itemsIndexed(chunkedProfiles) { index, rowProfiles ->
+                        val isEvenRow = index % 2 == 0
+                        val hasNextRow = index < chunkedProfiles.lastIndex
+                        val isLastRow = index == chunkedProfiles.lastIndex
+                        val numNodesInRow = rowProfiles.size
+                        
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .drawBehind {
+                                    val cx1 = size.width / 4
+                                    val cx2 = size.width * 3 / 4
+                                    val dotY = 127.dp.toPx()
+                                    val sw = strokeWidth.toPx()
+                                    val color = timelineColor.copy(alpha = 0.5f)
+                                    
+                                    // Entry tail
+                                    if (index == 0) {
+                                        val startX = cx1 - 60.dp.toPx()
+                                        drawLine(color, Offset(startX, dotY), Offset(cx1, dotY), sw)
+                                    }
+
+                                    // Horizontal segment
+                                    if (numNodesInRow == 2) {
+                                        drawLine(color, Offset(cx1, dotY), Offset(cx2, dotY), sw)
+                                    } else if (numNodesInRow == 1 && isLastRow && index != 0) {
+                                        val startX = if (isEvenRow) cx1 else cx2
+                                        val endX = if (isEvenRow) cx1 + 60.dp.toPx() else cx2 - 60.dp.toPx()
+                                        drawLine(color, Offset(startX, dotY), Offset(endX, dotY), sw)
+                                        drawArrow(endX, dotY, isEvenRow, color, sw)
+                                    }
+
+                                    // Trailing extension for 2 nodes
+                                    if (numNodesInRow == 2 && isLastRow) {
+                                        val startX = if (isEvenRow) cx2 else cx1
+                                        val endX = if (isEvenRow) cx2 + 60.dp.toPx() else cx1 - 60.dp.toPx()
+                                        drawLine(color, Offset(startX, dotY), Offset(endX, dotY), sw)
+                                        drawArrow(endX, dotY, isEvenRow, color, sw)
+                                    }
+
+                                    // C-curve to next row
+                                    if (hasNextRow) {
+                                        val startX = if (isEvenRow) cx2 else cx1
+                                        val endY = dotY + size.height
+                                        val controlX = if (isEvenRow) size.width - 16.dp.toPx() else 16.dp.toPx()
+                                        
+                                        val path = androidx.compose.ui.graphics.Path().apply {
+                                            moveTo(startX, dotY)
+                                            cubicTo(
+                                                controlX, dotY,
+                                                controlX, endY,
+                                                startX, endY
+                                            )
+                                        }
+                                        drawPath(path, color, style = androidx.compose.ui.graphics.drawscope.Stroke(width = sw))
+                                    }
+                                }
+                        ) {
+                            if (isEvenRow) {
+                                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                                    if (rowProfiles.isNotEmpty()) TimelineNode(rowProfiles[0], onClick = { onPlantClick(rowProfiles[0].plantId) })
+                                }
+                                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                                    if (rowProfiles.size > 1) TimelineNode(rowProfiles[1], onClick = { onPlantClick(rowProfiles[1].plantId) })
+                                }
+                            } else {
+                                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                                    if (rowProfiles.size > 1) TimelineNode(rowProfiles[1], onClick = { onPlantClick(rowProfiles[1].plantId) })
+                                }
+                                Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                                    if (rowProfiles.isNotEmpty()) TimelineNode(rowProfiles[0], onClick = { onPlantClick(rowProfiles[0].plantId) })
+                                }
+                            }
+                        }
+                    }
+                    item {
+                        Spacer(modifier = Modifier.height(40.dp))
+                        Text(
+                            text = "Tap a plant to view full history",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextSecondary.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
                         )
                     }
                 }
-
-                Spacer(modifier = Modifier.height(40.dp))
-
-                // Summary cards below the timeline
-                Text(
-                    text = "Tap a plant to view full history",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
             }
         }
     }
+}
+
+fun androidx.compose.ui.graphics.drawscope.DrawScope.drawArrow(x: Float, y: Float, pointsRight: Boolean, color: androidx.compose.ui.graphics.Color, sw: Float) {
+    val arrowSize = 12.dp.toPx()
+    val path = androidx.compose.ui.graphics.Path().apply {
+        if (pointsRight) {
+            moveTo(x, y)
+            lineTo(x - arrowSize, y - arrowSize)
+            moveTo(x, y)
+            lineTo(x - arrowSize, y + arrowSize)
+        } else {
+            moveTo(x, y)
+            lineTo(x + arrowSize, y - arrowSize)
+            moveTo(x, y)
+            lineTo(x + arrowSize, y + arrowSize)
+        }
+    }
+    drawPath(path, color, style = androidx.compose.ui.graphics.drawscope.Stroke(width = sw, cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
 }
 
 @Composable
@@ -276,6 +351,7 @@ fun TimelineNode(profile: PlantProfile, onClick: () -> Unit) {
                 modifier = Modifier.fillMaxWidth()
             )
         }
+        Spacer(modifier = Modifier.height(40.dp))
     }
 }
 
